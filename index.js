@@ -43,11 +43,16 @@ class GStore extends BaseStore {
                 } else {
                     fileNamePath=targetFilename;
                 }
+                // If running on Windows replace '\' with '/'
+                if (process.platform === 'win32') {
+                    fileNamePath = fileNamePath.replace(/\\/g, '/');
+                }
                 targetFilenameOut=fileNamePath;
                 var opts = {
                     destination: fileNamePath,
                     metadata: {
-                        cacheControl: `public, max-age=${this.maxAge}`
+                        cacheControl: `public, max-age=${this.maxAge}`,
+                        contentType: image.mimetype
                     },
                     public: true
                 };
@@ -67,8 +72,10 @@ class GStore extends BaseStore {
     }
 
     exists (filename, targetDir) {
+        var fileNamePath = path.join(targetDir, filename);
+        if (process.platform === 'win32')fileNamePath = fileNamePath.replace(/\\/g, '/');
         return this.bucket
-            .file(path.join(targetDir, filename))
+            .file(fileNamePath)
             .exists()
             .then(function(data){
                 return data[0];
